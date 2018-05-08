@@ -405,17 +405,18 @@ public:
           const std::string output_file =
               theia::StringPrintf("%s-%d", svar.GetString("output_reconstruction","reconstruction").c_str(), i);
           LOG(INFO) << "Writing reconstruction " << i << " to " << output_file;
+          GSLAM::MapPtr map=getMap();
+          Reconstruction& reconstruction=*reconstructions[i];
+          theia::ColorizeReconstruction(imageFolder+"/",
+                                        svar.GetInt("num_threads",1),
+                                        &reconstruction);
           CHECK(theia::WriteReconstruction(*reconstructions[i], output_file))
               << "Could not write reconstruction to file.";
           CHECK(WritePlyFile(output_file+".ply",
                              *reconstructions[i],
                              svar.GetInt("min_num_observations_per_point",3)))
               << "Could not write out PLY file.";
-          GSLAM::MapPtr map=getMap();
-          Reconstruction& reconstruction=*reconstructions[i];
-          theia::ColorizeReconstruction(imageFolder+"/",
-                                        svar.GetInt("num_threads",1),
-                                        &reconstruction);
+
           for (const TrackId track_id : reconstruction.TrackIds()) {
             const Track& track = *reconstruction.Track(track_id);
             map->insertMapPoint(GSLAM::PointPtr(new MapPoint(track)));
@@ -445,10 +446,6 @@ public:
         }
 
         if(_handle) _handle->handle(getMap());
-
-
-
-
         return true;
     }
 
